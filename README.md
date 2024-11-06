@@ -10,14 +10,3 @@ Cài đặt:
   pip install -r requirements.txt
 3. Khởi động ứng dụng:
    flask run
-
-Cấu trúc thư mục dự án: 
-MovieWeb/
-├── __init__.py
-├── admin.py
-├── forms.py
-├── main.py
-├── models.py
-├── static/
-├── templates/
-└── requirements.txt

@@ -1,6 +1,10 @@
-from MovieWeb import app
+from collections import UserDict
+
+from MovieWeb import app, bcrypt
 from flask import render_template, flash, redirect, url_for
 from MovieWeb.forms import RegistrationForm, LoginForm, MovieForm
+from MovieWeb.models import  Movie, User
+from flask_login import login_user, current_user, logout_user
 
 @app.route("/")
 @app.route("/home")
@@ -20,22 +24,40 @@ def movie_details(movie_id):
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        flash(f'Đăng ký tài khoản thành công {form.username.data}!', 'success')
-        return redirect(url_for('home'))
-    return render_template("register.html", title="Đăng Ký", form=form)
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Đăng ký tài khoản thành công', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
-        if form.email.data == 'admin@gmail.com' and form.password.data == 'admin':
-            flash(f'Đăng nhập thành công!', 'success')
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            # next_page = request.args.get('next')
             return redirect(url_for('home'))
         else:
-            flash(f'Đăng nhập thất bại, Vui lòng nhập tài khoản hợp lệ', 'danger')
-    return render_template("login.html", title="Đăng Nhập", form=form)
+            flash('Đăng nhập thất bại, vui lòng kiểm tra email và mật khẩu', 'danger')
+    return render_template('login.html', title='Login', form=form)
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+
 
 # Thêm mới phim
 @app.route('/movies/add', methods=['GET', 'POST'])

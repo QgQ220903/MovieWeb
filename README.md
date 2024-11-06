@@ -4,6 +4,7 @@ Cài đặt:
 1. Tạo môi trường ảo:
    python -m venv venv
    source venv/bin/activate
-2. Cài đặt các gói phụ thuộc
+2. Cài đặt các gói phụ thuộc:
   pip install -r requirements.txt
-3. flask run
+3. Khởi động ứng dụng:
+   flask run
